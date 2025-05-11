@@ -6,7 +6,7 @@ import type { TelegramUser } from './types/telegram'
 
 function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { user, tg, isReady } = useTelegram();
+  const { user, tg } = useTelegram();
 
   useEffect(() => {
     if (tg || window.location.search.includes('debug=true')) {

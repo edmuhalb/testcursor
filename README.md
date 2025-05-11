@@ -1,54 +1,65 @@
-# React + TypeScript + Vite
+# Telegram Mini App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Мини-приложение для Telegram, которое отображает информацию о пользователе. Разработано с использованием React, TypeScript и Vite.
 
-Currently, two official plugins are available:
+## Функциональность
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Отображение информации о пользователе Telegram
+- Адаптивный дизайн
+- Поддержка тем Telegram (светлая/темная)
+- Режим отладки для тестирования вне Telegram
 
-## Expanding the ESLint configuration
+## Установка и запуск
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. Клонируйте репозиторий:
+```
+git clone https://github.com/ваш-username/telegram-mini-app.git
+cd telegram-mini-app
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+2. Установите зависимости:
 ```
+npm install
+```
+
+3. Запустите приложение для разработки:
+```
+npm run dev
+```
+
+4. Для тестирования вне Telegram, добавьте параметр `?debug=true` к URL:
+```
+http://localhost:5173/?debug=true
+```
+
+## Сборка для production
+
+```
+npm run build
+```
+
+Результаты сборки будут находиться в папке `dist`.
+
+## Интеграция в Telegram
+
+1. Соберите приложение для production
+2. Загрузите результаты сборки на ваш хостинг
+3. Создайте нового бота или используйте существующего в BotFather
+4. Настройте ваше мини-приложение через BotFather
+5. Установите URL на ваш опубликованный сайт
+
+## Технологии
+
+- React 18
+- TypeScript
+- Vite
+- Telegram Web App API
+
+## Тестирование
+
+- Для режима отладки: добавьте `?debug=true` к URL
+- Для тестирования в Telegram: используйте режим предпросмотра в BotFather или настройте локальный тоннель с помощью ngrok/localtunnel
+
+## Лицензия
+
+MIT
