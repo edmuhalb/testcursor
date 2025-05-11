@@ -146,3 +146,360 @@ code {
     max-width: 100%;
   }
 }
+
+/* Стили для анализатора еды и истории питания */
+.food-analyzer, .meal-history {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: var(--tg-theme-secondary-bg-color, #fff);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Стили для кнопок */
+.button {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 12px 0;
+}
+
+.primary-button {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+}
+
+.analyze-button {
+  background-color: var(--secondary-color);
+  color: var(--button-text-color);
+}
+
+.save-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.refresh-button {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Стили для предпросмотра фото */
+.photo-preview {
+  margin: 16px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 300px;
+}
+
+.photo-preview img {
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Стили для выбора типа приема пищи */
+.meal-type-selector {
+  margin: 16px 0;
+}
+
+.select-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid var(--hint-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* Стили для результатов анализа */
+.analysis-results {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: var(--background-color);
+  border-radius: 8px;
+}
+
+.analysis-results h3 {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.nutrition-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--tg-theme-secondary-bg-color, #fff);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.nutrition-item span {
+  font-size: 0.9rem;
+  color: var(--hint-color);
+}
+
+.nutrition-item strong {
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.health-score {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.progress-bar {
+  height: 16px;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  margin: 8px 0;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.score-value {
+  font-weight: bold;
+}
+
+.commentary {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--tg-theme-secondary-bg-color, #fff);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Стили для истории приемов пищи */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.day-card {
+  background-color: var(--background-color);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.day-title {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.day-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 8px;
+  background-color: var(--tg-theme-secondary-bg-color, #fff);
+  border-radius: 8px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.summary-item span {
+  color: var(--hint-color);
+  margin-bottom: 4px;
+}
+
+.mini-progress {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.mini-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.meals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meal-card {
+  background-color: var(--tg-theme-secondary-bg-color, #fff);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.meal-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.meal-time {
+  font-size: 0.9rem;
+  color: var(--hint-color);
+}
+
+.meal-content {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.meal-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.meal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meal-details {
+  flex: 1;
+}
+
+.food-item {
+  margin-bottom: 10px;
+}
+
+.food-item h5 {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+}
+
+.food-nutrition {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.food-comment {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--hint-color);
+}
+
+.meal-footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.meal-health-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.meal-health-score .mini-progress {
+  flex: 1;
+}
+
+.loading, .empty-history {
+  text-align: center;
+  padding: 20px;
+  color: var(--hint-color);
+}
+
+/* Адаптивные стили */
+@media (max-width: 600px) {
+  .nutrition-info,
+  .day-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .meal-content {
+    flex-direction: column;
+  }
+  
+  .meal-photo {
+    width: 100%;
+    height: 160px;
+  }
+}
+
+/* Стили для табов навигации */
+.app-tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  background-color: var(--background-color);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+.tab-button.active {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+}
