@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useNutritionStorage from '../hooks/useNutritionStorage';
-import type { Meal, DailyNutrition } from '../types/nutrition';
+import type { DailyNutrition } from '../types/nutrition';
 import { MealType } from '../types/nutrition';
 
 interface MealHistoryProps {

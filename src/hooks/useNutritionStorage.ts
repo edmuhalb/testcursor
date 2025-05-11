@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import type { Meal, DailyNutrition, FoodAnalysis, MealType } from '../types/nutrition';
+import type { Meal, DailyNutrition } from '../types/nutrition';
 
 interface UseNutritionStorageReturn {
   addMeal: (meal: Meal) => Promise<void>;

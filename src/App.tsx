@@ -5,12 +5,10 @@ import UserProfile from './components/UserProfile'
 import FoodAnalyzer from './components/FoodAnalyzer'
 import MealHistory from './components/MealHistory'
 import type { TelegramUser } from './types/telegram'
-import type { Meal } from './types/nutrition'
 
 function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'food' | 'history'>('food');
-  const [lastAddedMeal, setLastAddedMeal] = useState<Meal | null>(null);
   const { user, tg } = useTelegram();
 
   useEffect(() => {
@@ -32,8 +30,7 @@ function App() {
   };
 
   // Обработчик завершения анализа еды
-  const handleAnalysisComplete = (meal: Meal) => {
-    setLastAddedMeal(meal);
+  const handleAnalysisComplete = () => {
     setActiveTab('history');
   };
 

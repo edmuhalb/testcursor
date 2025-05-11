@@ -25,12 +25,14 @@ export interface Meal {
 }
 
 // Тип приема пищи
-export enum MealType {
-  BREAKFAST = 'breakfast',
-  LUNCH = 'lunch',
-  DINNER = 'dinner',
-  SNACK = 'snack'
-}
+export const MealType = {
+  BREAKFAST: 'breakfast',
+  LUNCH: 'lunch',
+  DINNER: 'dinner',
+  SNACK: 'snack'
+} as const;
+
+export type MealType = typeof MealType[keyof typeof MealType];
 
 // Интерфейс для дневной статистики питания
 export interface DailyNutrition {
