@@ -4,11 +4,92 @@ import './App.css'
 function App() {
   const [formula, setFormula] = useState<string>('0')
   const [calculationDone, setCalculationDone] = useState<boolean>(false)
-  const [lastOperation, setLastOperation] = useState<string | null>(null)
   const [isListening, setIsListening] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   
   const recognitionRef = useRef<any>(null)
+
+  // Безопасное вычисление математического выражения без использования eval
+  const safeEvaluate = (expression: string): number => {
+    // Удаляем все, кроме чисел, операторов и точек
+    const sanitized = expression.replace(/[^0-9+\-*/().]/g, '');
+    
+    // Разбиваем строку на токены (числа и операторы)
+    const tokens: (number | string)[] = [];
+    let currentNumber = '';
+    
+    for (let i = 0; i < sanitized.length; i++) {
+      const char = sanitized[i];
+      if ('0123456789.'.includes(char)) {
+        currentNumber += char;
+      } else {
+        if (currentNumber !== '') {
+          tokens.push(parseFloat(currentNumber));
+          currentNumber = '';
+        }
+        
+        if ('+-*/()'.includes(char)) {
+          tokens.push(char);
+        }
+      }
+    }
+    
+    if (currentNumber !== '') {
+      tokens.push(parseFloat(currentNumber));
+    }
+    
+    // Вычисление с приоритетом операций
+    const calculate = (tokens: (number | string)[]): number => {
+      // Обработка скобок
+      while (tokens.includes('(')) {
+        const openIndex = tokens.lastIndexOf('(');
+        const closeIndex = tokens.indexOf(')', openIndex);
+        
+        if (closeIndex === -1) throw new Error('Непарные скобки');
+        
+        const subExpression = tokens.slice(openIndex + 1, closeIndex);
+        const result = calculate(subExpression);
+        
+        tokens.splice(openIndex, closeIndex - openIndex + 1, result);
+      }
+      
+      // Вычисление умножения и деления
+      for (let i = 1; i < tokens.length - 1; i++) {
+        if (tokens[i] === '*' || tokens[i] === '/') {
+          const left = tokens[i - 1] as number;
+          const right = tokens[i + 1] as number;
+          let result: number;
+          
+          if (tokens[i] === '*') {
+            result = left * right;
+          } else {
+            if (right === 0) throw new Error('Деление на ноль');
+            result = left / right;
+          }
+          
+          tokens.splice(i - 1, 3, result);
+          i--;
+        }
+      }
+      
+      // Вычисление сложения и вычитания
+      let result = tokens[0] as number;
+      for (let i = 1; i < tokens.length; i += 2) {
+        const operator = tokens[i] as string;
+        const value = tokens[i + 1] as number;
+        
+        if (operator === '+') {
+          result += value;
+        } else if (operator === '-') {
+          result -= value;
+        }
+      }
+      
+      return result;
+    };
+    
+    return calculate(tokens);
+  };
 
   // Инициализация распознавания речи
   useEffect(() => {
@@ -134,7 +215,6 @@ function App() {
   const handleClear = () => {
     setFormula('0')
     setCalculationDone(false)
-    setLastOperation(null)
     setError(null)
   }
 
@@ -228,14 +308,15 @@ function App() {
         // Заменяем × на * для вычисления
         const expressionToEvaluate = formula.replace(/×/g, '*');
         
-        // eslint-disable-next-line no-eval
-        const result = eval(expressionToEvaluate);
+        // Используем безопасную функцию вместо eval
+        const result = safeEvaluate(expressionToEvaluate);
         const resultStr = Number.isInteger(result) ? result.toString() : 
                          result.toFixed(8).replace(/\.?0+$/, '');
         
         setFormula(resultStr);
         setCalculationDone(true);
       } catch (error) {
+        console.error('Ошибка вычисления:', error);
         setFormula('Ошибка');
         setCalculationDone(true);
       }
@@ -255,7 +336,6 @@ function App() {
           setFormula(formula + ' ' + operator + ' ');
         }
       }
-      setLastOperation(operator);
     }
   }
 
