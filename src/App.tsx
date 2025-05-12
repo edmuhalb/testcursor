@@ -45,28 +45,6 @@ function App() {
         <p className="loading">Загрузка...</p>
       ) : currentUser ? (
         <>
-          {/* Навигация */}
-          <div className="app-tabs">
-            <button 
-              className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={() => setActiveTab('profile')}
-            >
-              Профиль
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'food' ? 'active' : ''}`}
-              onClick={() => setActiveTab('food')}
-            >
-              Анализ еды
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
-              onClick={() => setActiveTab('history')}
-            >
-              История
-            </button>
-          </div>
-          
           {/* Контент активной вкладки */}
           <div className="content">
             {activeTab === 'profile' && <UserProfile user={currentUser} />}
@@ -77,6 +55,31 @@ function App() {
               />
             )}
             {activeTab === 'history' && <MealHistory userId={currentUser.id} />}
+          </div>
+          
+          {/* Навигация */}
+          <div className="app-tabs">
+            <button 
+              className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('profile')}
+              data-tab="profile"
+            >
+              Профиль
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'food' ? 'active' : ''}`}
+              onClick={() => setActiveTab('food')}
+              data-tab="food"
+            >
+              Анализ еды
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('history')}
+              data-tab="history"
+            >
+              История
+            </button>
           </div>
         </>
       ) : (
