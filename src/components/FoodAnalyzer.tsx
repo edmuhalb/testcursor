@@ -16,9 +16,11 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
   const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
   const [mealType, setMealType] = useState<MealType>(MealType.LUNCH);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [foodText, setFoodText] = useState<string>('');
+  const [isTextAnalyzing, setIsTextAnalyzing] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { analyzeFood, isAnalyzing, error: analysisError } = useChatGPTFoodAnalysis();
+  const { analyzeFood, analyzeFoodText, isAnalyzing, error: analysisError } = useChatGPTFoodAnalysis();
   const { addMeal } = useNutritionStorage();
 
   // Обработчик выбора фото
@@ -46,7 +48,26 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
     }
   };
 
-  // Обработчик кнопки анализа фото
+  // Анализ текста еды
+  const handleAnalyzeText = async () => {
+    if (!foodText.trim()) return;
+    setIsTextAnalyzing(true);
+    setAnalysis(null);
+    try {
+      const result = await analyzeFoodText(foodText);
+      if (result.success && result.analysis) {
+        setAnalysis(result.analysis);
+      } else {
+        alert('Не удалось проанализировать текст: ' + result.error);
+      }
+    } catch (error) {
+      alert('Произошла ошибка при анализе текста');
+    } finally {
+      setIsTextAnalyzing(false);
+    }
+  };
+
+  // Анализ фото еды
   const handleAnalyzeClick = async () => {
     if (!photo) return;
     
@@ -65,21 +86,19 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
     }
   };
 
-  // Обработчик сохранения приема пищи
+  // Сохранение приема пищи
   const handleSaveMeal = async () => {
-    if (!analysis || !photo) return;
+    if (!analysis) return;
     
     setIsSaving(true);
     
     try {
-      // Создаем объект приема пищи
       const newMeal: Meal = {
         id: uuidv4(),
         userId,
         timestamp: Date.now(),
         type: mealType,
         foods: [analysis],
-        photo: photoPreview || undefined,
         totalCalories: analysis.calories,
         totalProtein: analysis.protein,
         totalFats: analysis.fats,
@@ -87,13 +106,13 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
         healthScore: analysis.healthScore
       };
       
-      // Сохраняем прием пищи
-      await addMeal(newMeal);
+      await addMeal(newMeal, photo || undefined);
       
       // Очищаем форму
       setPhoto(null);
       setPhotoPreview(null);
       setAnalysis(null);
+      setFoodText('');
       
       // Вызываем колбэк завершения анализа
       if (onAnalysisComplete) {
@@ -111,41 +130,25 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
 
   return (
     <div className="food-analyzer">
-      <h2 className="section-title">Анализ питания</h2>
+      <h2 className="section-title">Добавить прием пищи</h2>
       
-      {/* Скрытый input для выбора файла */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handlePhotoChange}
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-      />
-      
-      {/* Кнопка выбора фото */}
-      <button
-        className="button primary-button"
-        onClick={handleChoosePhotoClick}
-        disabled={isAnalyzing}
-      >
-        {photoPreview ? 'Выбрать другое фото' : 'Сделать фото еды'}
-      </button>
-      
-      {/* Превью фото */}
-      {photoPreview && (
-        <div className="photo-preview">
-          <img src={photoPreview} alt="Фото еды" />
-        </div>
-      )}
-      
-      {/* Выбор типа приема пищи */}
-      {photo && !analysis && (
+      {/* Ввод еды текстом */}
+      <div className="food-text-input-block">
+        <textarea
+          className="food-text-input"
+          placeholder="Опишите ваш прием пищи, например: Курица 200гр, картофель 250, салат греческий 300гр и стакан колы"
+          value={foodText}
+          onChange={e => setFoodText(e.target.value)}
+          rows={3}
+          disabled={isTextAnalyzing || isSaving}
+        />
         <div className="meal-type-selector">
-          <p>Выберите тип приема пищи:</p>
+          <span>Тип приема пищи:</span>
           <select
             value={mealType}
-            onChange={(e) => setMealType(e.target.value as MealType)}
+            onChange={e => setMealType(e.target.value as MealType)}
             className="select-input"
+            disabled={isTextAnalyzing || isSaving}
           >
             <option value={MealType.BREAKFAST}>Завтрак</option>
             <option value={MealType.LUNCH}>Обед</option>
@@ -153,25 +156,14 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
             <option value={MealType.SNACK}>Перекус</option>
           </select>
         </div>
-      )}
-      
-      {/* Кнопка анализа */}
-      {photo && !analysis && (
         <button
           className="button analyze-button"
-          onClick={handleAnalyzeClick}
-          disabled={isAnalyzing}
+          onClick={handleAnalyzeText}
+          disabled={isTextAnalyzing || !foodText.trim()}
         >
-          {isAnalyzing ? 'Анализируем...' : 'Проанализировать'}
+          {isTextAnalyzing ? 'Анализируем...' : 'Проанализировать текст'}
         </button>
-      )}
-      
-      {/* Сообщение об ошибке */}
-      {analysisError && (
-        <div className="error-message">
-          <p>{analysisError}</p>
-        </div>
-      )}
+      </div>
       
       {/* Результаты анализа */}
       {analysis && (
@@ -225,6 +217,45 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
           >
             {isSaving ? 'Сохранение...' : 'Сохранить прием пищи'}
           </button>
+        </div>
+      )}
+      
+      {/* Второстепенная функция: анализ по фото */}
+      <div className="photo-analyze-block">
+        <h3 style={{marginTop: 32}}>Или проанализируйте по фото</h3>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+        />
+        <button
+          className="button secondary-button"
+          onClick={handleChoosePhotoClick}
+          disabled={isAnalyzing}
+        >
+          {photoPreview ? 'Выбрать другое фото' : 'Сделать фото еды'}
+        </button>
+        {photoPreview && (
+          <div className="photo-preview">
+            <img src={photoPreview} alt="Фото еды" />
+          </div>
+        )}
+        {photo && !analysis && (
+          <button
+            className="button analyze-button"
+            onClick={handleAnalyzeClick}
+            disabled={isAnalyzing}
+          >
+            {isAnalyzing ? 'Анализируем...' : 'Проанализировать фото'}
+          </button>
+        )}
+      </div>
+      
+      {analysisError && (
+        <div className="error-message">
+          <p>{analysisError}</p>
         </div>
       )}
     </div>
