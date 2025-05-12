@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import type { Meal, DailyNutrition } from '../types/nutrition';
+import { nutritionDB } from '../services/database';
 
 interface UseNutritionStorageReturn {
   addMeal: (meal: Meal) => Promise<void>;
@@ -6,17 +8,14 @@ interface UseNutritionStorageReturn {
   getDailyNutrition: (userId: number, date?: string) => Promise<DailyNutrition | null>;
   getHistory: (userId: number, daysCount?: number) => Promise<DailyNutrition[]>;
   clearHistory: (userId: number) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
 }
 
 const useNutritionStorage = (): UseNutritionStorageReturn => {
-  // Префикс для ключей в localStorage
-  const STORAGE_PREFIX = 'nutrition_tracker_';
-  
-  // Функция для получения ключа по дате и ID пользователя
-  const getStorageKey = (userId: number, date: string): string => {
-    return `${STORAGE_PREFIX}${userId}_${date}`;
-  };
-  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   // Функция для получения текущей даты в формате YYYY-MM-DD
   const getCurrentDate = (): string => {
     const today = new Date();
@@ -25,149 +24,86 @@ const useNutritionStorage = (): UseNutritionStorageReturn => {
   
   // Добавление нового приема пищи
   const addMeal = async (meal: Meal): Promise<void> => {
-    const date = new Date(meal.timestamp).toISOString().split('T')[0];
-    const key = getStorageKey(meal.userId, date);
-    
-    // Получаем текущую дневную статистику или создаем новую
-    let dailyData: DailyNutrition;
+    setIsLoading(true);
+    setError(null);
     
     try {
-      const existingData = localStorage.getItem(key);
-      
-      if (existingData) {
-        dailyData = JSON.parse(existingData);
-        
-        // Добавляем новый прием пищи
-        dailyData.meals.push(meal);
-      } else {
-        // Создаем новый объект дневной статистики
-        dailyData = {
-          date,
-          userId: meal.userId,
-          meals: [meal],
-          totalCalories: 0,
-          totalProtein: 0,
-          totalFats: 0,
-          totalCarbs: 0,
-          averageHealthScore: 0
-        };
-      }
-      
-      // Пересчитываем общую статистику
-      recalculateDailyTotals(dailyData);
-      
-      // Сохраняем обновленные данные
-      localStorage.setItem(key, JSON.stringify(dailyData));
-      
+      await nutritionDB.addMeal(meal);
     } catch (error) {
       console.error('Ошибка при сохранении приема пищи:', error);
+      setError('Не удалось сохранить данные о приеме пищи');
       throw new Error('Не удалось сохранить данные о приеме пищи');
+    } finally {
+      setIsLoading(false);
     }
-  };
-  
-  // Пересчет общей дневной статистики
-  const recalculateDailyTotals = (dailyData: DailyNutrition): void => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalFats = 0;
-    let totalCarbs = 0;
-    let totalHealthScore = 0;
-    
-    dailyData.meals.forEach(meal => {
-      totalCalories += meal.totalCalories;
-      totalProtein += meal.totalProtein;
-      totalFats += meal.totalFats;
-      totalCarbs += meal.totalCarbs;
-      totalHealthScore += meal.healthScore;
-    });
-    
-    dailyData.totalCalories = totalCalories;
-    dailyData.totalProtein = totalProtein;
-    dailyData.totalFats = totalFats;
-    dailyData.totalCarbs = totalCarbs;
-    dailyData.averageHealthScore = dailyData.meals.length > 0 
-      ? totalHealthScore / dailyData.meals.length 
-      : 0;
   };
   
   // Получение всех приемов пищи за определенную дату
   const getMeals = async (userId: number, date?: string): Promise<Meal[]> => {
-    const targetDate = date || getCurrentDate();
-    const key = getStorageKey(userId, targetDate);
+    setIsLoading(true);
+    setError(null);
     
     try {
-      const data = localStorage.getItem(key);
-      if (data) {
-        const dailyData: DailyNutrition = JSON.parse(data);
-        return dailyData.meals;
-      }
-      return [];
+      const targetDate = date || getCurrentDate();
+      const meals = await nutritionDB.getMeals(userId, targetDate);
+      return meals;
     } catch (error) {
       console.error('Ошибка при получении приемов пищи:', error);
+      setError('Не удалось загрузить приемы пищи');
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
   
   // Получение дневной статистики
   const getDailyNutrition = async (userId: number, date?: string): Promise<DailyNutrition | null> => {
-    const targetDate = date || getCurrentDate();
-    const key = getStorageKey(userId, targetDate);
+    setIsLoading(true);
+    setError(null);
     
     try {
-      const data = localStorage.getItem(key);
-      if (data) {
-        return JSON.parse(data);
-      }
-      return null;
+      const targetDate = date || getCurrentDate();
+      const dailyData = await nutritionDB.getDailyNutrition(userId, targetDate);
+      return dailyData;
     } catch (error) {
       console.error('Ошибка при получении дневной статистики:', error);
+      setError('Не удалось загрузить дневную статистику');
       return null;
+    } finally {
+      setIsLoading(false);
     }
   };
   
   // Получение истории питания за указанное количество дней
   const getHistory = async (userId: number, daysCount: number = 7): Promise<DailyNutrition[]> => {
-    const history: DailyNutrition[] = [];
-    const today = new Date();
+    setIsLoading(true);
+    setError(null);
     
     try {
-      for (let i = 0; i < daysCount; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateString = date.toISOString().split('T')[0];
-        
-        const dailyData = await getDailyNutrition(userId, dateString);
-        if (dailyData) {
-          history.push(dailyData);
-        }
-      }
-      
+      const history = await nutritionDB.getHistory(userId, daysCount);
       return history;
     } catch (error) {
       console.error('Ошибка при получении истории питания:', error);
+      setError('Не удалось загрузить историю питания');
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
   
   // Очистка всей истории питания пользователя
   const clearHistory = async (userId: number): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const keysToRemove: string[] = [];
-      
-      // Находим все ключи, относящиеся к данному пользователю
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(`${STORAGE_PREFIX}${userId}`)) {
-          keysToRemove.push(key);
-        }
-      }
-      
-      // Удаляем все найденные ключи
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+      await nutritionDB.clearHistory(userId);
     } catch (error) {
       console.error('Ошибка при очистке истории питания:', error);
+      setError('Не удалось очистить историю питания');
       throw new Error('Не удалось очистить историю питания');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -176,7 +112,9 @@ const useNutritionStorage = (): UseNutritionStorageReturn => {
     getMeals,
     getDailyNutrition,
     getHistory,
-    clearHistory
+    clearHistory,
+    isLoading,
+    error
   };
 };
 

@@ -602,3 +602,79 @@ code {
     height: 160px;
   }
 }
+
+/* Стили для раздела базы данных */
+.database-section {
+  background-color: var(--chat-item-bg);
+  margin: 10px;
+  padding: 16px;
+  border-radius: var(--small-radius);
+}
+
+.database-stats {
+  margin-bottom: 16px;
+}
+
+.danger-button {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.action-result {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: var(--small-radius);
+  text-align: center;
+  font-weight: 500;
+}
+
+.action-result.success {
+  background-color: rgba(52, 199, 89, 0.2);
+  color: var(--success-color);
+}
+
+.action-result.error {
+  background-color: rgba(255, 59, 48, 0.2);
+  color: var(--danger-color);
+}
+
+/* Индикатор загрузки */
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--hint-color);
+  background-color: var(--chat-item-bg);
+  margin: 16px;
+  border-radius: var(--small-radius);
+}
+
+.loading-indicator {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(135, 116, 225, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spinner 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty-history {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--hint-color);
+  background-color: var(--chat-item-bg);
+  margin: 16px;
+  border-radius: var(--small-radius);
+}
+
+.empty-hint {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
