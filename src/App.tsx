@@ -9,7 +9,7 @@ import type { TelegramUser } from './types/telegram'
 function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'food' | 'history'>('food');
-  const { user, tg } = useTelegram();
+  const { user, tg, colorScheme, themeParams } = useTelegram();
 
   useEffect(() => {
     if (tg || window.location.search.includes('debug=true')) {
@@ -23,6 +23,20 @@ function App() {
       tg.expand();
     }
   }, [tg]);
+
+  // Применение цветов темы Telegram
+  useEffect(() => {
+    if (themeParams) {
+      document.documentElement.style.setProperty('--background-color', themeParams.bg_color);
+      document.documentElement.style.setProperty('--secondary-color', themeParams.secondary_bg_color);
+      document.documentElement.style.setProperty('--text-color', themeParams.text_color);
+      document.documentElement.style.setProperty('--hint-color', themeParams.hint_color);
+      document.documentElement.style.setProperty('--link-color', themeParams.link_color);
+      document.documentElement.style.setProperty('--button-color', themeParams.button_color);
+      document.documentElement.style.setProperty('--button-text-color', themeParams.button_text_color);
+      document.documentElement.style.setProperty('--primary-color', themeParams.button_color || '#8774e1');
+    }
+  }, [themeParams]);
 
   // Режим отладки - используется для тестирования вне Telegram
   const debugMode = window.location.search.includes('debug=true');
@@ -45,7 +59,7 @@ function App() {
   const currentUser = user || (debugMode ? debugUser : null);
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${colorScheme || 'dark'}`}>
       <header className="telegram-header">
         <h1 className="telegram-header-title">Дневник питания</h1>
       </header>
@@ -66,30 +80,30 @@ function App() {
             {activeTab === 'history' && <MealHistory userId={currentUser.id} />}
           </div>
           
-          {/* Навигация */}
-          <div className="app-tabs">
+          {/* Навигация в стиле Telegram */}
+          <nav className="telegram-tabs">
             <button 
               className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('profile')}
-              data-tab="profile"
             >
-              Профиль
+              <i className="fa-solid fa-user"></i>
+              <span>Профиль</span>
             </button>
             <button 
               className={`tab-button ${activeTab === 'food' ? 'active' : ''}`}
               onClick={() => setActiveTab('food')}
-              data-tab="food"
             >
-              Добавить
+              <i className="fa-solid fa-camera"></i>
+              <span>Добавить</span>
             </button>
             <button 
               className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
               onClick={() => setActiveTab('history')}
-              data-tab="history"
             >
-              История
+              <i className="fa-solid fa-utensils"></i>
+              <span>История</span>
             </button>
-          </div>
+          </nav>
         </>
       ) : (
         <div className="error-message">
