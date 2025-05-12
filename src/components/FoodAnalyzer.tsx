@@ -129,25 +129,26 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
   };
 
   return (
-    <div className="food-analyzer">
-      <h2 className="section-title">Добавить прием пищи</h2>
-      
+    <div className="food-analyzer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+      <h2 className="section-title" style={{ textAlign: 'center', marginBottom: 24 }}>Добавить прием пищи</h2>
       {/* Ввод еды текстом */}
-      <div className="food-text-input-block">
+      <div className="food-text-input-block" style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
         <textarea
           className="food-text-input"
           placeholder="Опишите ваш прием пищи, например: Курица 200гр, картофель 250, салат греческий 300гр и стакан колы"
           value={foodText}
           onChange={e => setFoodText(e.target.value)}
-          rows={3}
+          rows={5}
+          style={{ width: '100%', minHeight: 90, fontSize: 18, padding: 16, borderRadius: 12, border: '1px solid #444', marginBottom: 16, background: '#181818', color: '#fff', boxSizing: 'border-box' }}
           disabled={isTextAnalyzing || isSaving}
         />
-        <div className="meal-type-selector">
-          <span>Тип приема пищи:</span>
+        <div className="meal-type-selector" style={{ width: '100%', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <span style={{ fontSize: 16 }}>Тип приема пищи:</span>
           <select
             value={mealType}
             onChange={e => setMealType(e.target.value as MealType)}
             className="select-input"
+            style={{ fontSize: 16, padding: '6px 12px', borderRadius: 8, border: '1px solid #444', background: '#222', color: '#fff' }}
             disabled={isTextAnalyzing || isSaving}
           >
             <option value={MealType.BREAKFAST}>Завтрак</option>
@@ -158,16 +159,16 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
         </div>
         <button
           className="button analyze-button"
+          style={{ width: '100%', maxWidth: 300, fontSize: 18, padding: '12px 0', borderRadius: 10, marginTop: 8 }}
           onClick={handleAnalyzeText}
           disabled={isTextAnalyzing || !foodText.trim()}
         >
           {isTextAnalyzing ? 'Анализируем...' : 'Проанализировать текст'}
         </button>
       </div>
-      
       {/* Результаты анализа */}
       {analysis && (
-        <div className="analysis-results">
+        <div className="analysis-results" style={{ width: '100%', maxWidth: 400, marginBottom: 24 }}>
           <h3>{analysis.name}</h3>
           
           <div className="nutrition-info">
@@ -219,10 +220,9 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
           </button>
         </div>
       )}
-      
       {/* Второстепенная функция: анализ по фото */}
-      <div className="photo-analyze-block">
-        <h3 style={{marginTop: 32}}>Или проанализируйте по фото</h3>
+      <div className="photo-analyze-block" style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 32 }}>
+        <h3 style={{ marginTop: 0, marginBottom: 16, textAlign: 'center' }}>Или проанализируйте по фото</h3>
         <input
           type="file"
           accept="image/*"
@@ -232,19 +232,21 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
         />
         <button
           className="button secondary-button"
+          style={{ width: '100%', maxWidth: 300, fontSize: 18, padding: '12px 0', borderRadius: 10, marginBottom: 16 }}
           onClick={handleChoosePhotoClick}
           disabled={isAnalyzing}
         >
           {photoPreview ? 'Выбрать другое фото' : 'Сделать фото еды'}
         </button>
         {photoPreview && (
-          <div className="photo-preview">
-            <img src={photoPreview} alt="Фото еды" />
+          <div className="photo-preview" style={{ marginBottom: 16 }}>
+            <img src={photoPreview} alt="Фото еды" style={{ maxWidth: 200, borderRadius: 12 }} />
           </div>
         )}
         {photo && !analysis && (
           <button
             className="button analyze-button"
+            style={{ width: '100%', maxWidth: 300, fontSize: 18, padding: '12px 0', borderRadius: 10 }}
             onClick={handleAnalyzeClick}
             disabled={isAnalyzing}
           >
@@ -252,9 +254,8 @@ const FoodAnalyzer: React.FC<FoodAnalyzerProps> = ({ userId, onAnalysisComplete 
           </button>
         )}
       </div>
-      
       {analysisError && (
-        <div className="error-message">
+        <div className="error-message" style={{ width: '100%', maxWidth: 400, marginTop: 16 }}>
           <p>{analysisError}</p>
         </div>
       )}
