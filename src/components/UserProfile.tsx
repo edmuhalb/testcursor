@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useNutritionStorage from '../hooks/useNutritionStorage';
 import type { TelegramUser } from '../types/telegram';
-import { nutritionDB } from '../services/database';
 
 interface UserProfileProps {
   user: TelegramUser;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
-  const { clearHistory, isLoading, error } = useNutritionStorage();
+  const { clearHistory, getHistory, isLoading, error } = useNutritionStorage();
   const [dbStats, setDbStats] = useState<{mealCount: number, daysCount: number} | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
   const [actionResult, setActionResult] = useState<{success: boolean, message: string} | null>(null);
@@ -18,14 +17,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     setIsStatsLoading(true);
     try {
       // Получаем историю за большой период, чтобы оценить объем данных
-      const history = await nutritionDB.getHistory(user.id, 30);
-      
+      const history = await getHistory(user.id, 30);
       // Подсчитываем общее количество приемов пищи
       let totalMeals = 0;
-      history.forEach(day => {
+      history.forEach((day: any) => {
         totalMeals += day.meals.length;
       });
-      
       setDbStats({
         mealCount: totalMeals,
         daysCount: history.length
@@ -110,7 +107,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
               </p>
               <p>
                 <span>Тип хранилища:</span>
-                <span>IndexedDB</span>
+                <span>Сервер</span>
               </p>
             </div>
           </div>
