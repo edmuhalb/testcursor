@@ -66,6 +66,8 @@ const mockFoodAnalysis = async (_imageFile: File | Blob): Promise<FoodAnalysis> 
   };
 };
 
+const API_BASE = 'https://your-backend.com/api'; // Замените на ваш адрес backend-прокси
+
 const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,54 +217,16 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      if (shouldUseMock) {
-        // Используем mockFoodAnalysis для текста (можно доработать для генерации на основе текста)
-        const mockResult = await mockFoodAnalysis(new Blob());
-        return { success: true, analysis: mockResult };
-      }
-      if (!cleanApiKey) {
-        throw new Error('API ключ OpenAI не найден или некорректен');
-      }
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`${API_BASE}/food-analysis-text`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cleanApiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: 'Ты эксперт по питанию и анализу еды. Твоя задача - анализировать текстовое описание приёма пищи и определять его питательную ценность.'
-            },
-            {
-              role: 'user',
-              content: `Проанализируй этот приём пищи: ${foodText}. Определи примерное количество калорий, белков (г), жиров (г), углеводов (г) и дай оценку качества питания от 0 до 100, где 100 - самое здоровое. Верни только JSON без пояснений: {"name": "Название блюда/приёма", "calories": число, "protein": число, "fats": число, "carbs": число, "healthScore": число, "commentary": "краткий комментарий о полезности еды"}`
-            }
-          ],
-          max_tokens: 1000
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: foodText })
       });
-      if (!response.ok) {
-        const responseData = await response.json().catch(() => ({ error: 'Ошибка парсинга ответа' }));
-        throw new Error(`Ошибка OpenAI API: ${response.status} - ${responseData.error?.message || 'Неизвестная ошибка'}`);
-      }
+      if (!response.ok) throw new Error('Ошибка анализа текста');
       const data = await response.json();
       const content = data.choices[0].message.content;
-      try {
-        const analysisData: FoodAnalysis = JSON.parse(content);
-        return { success: true, analysis: analysisData };
-      } catch (jsonError) {
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('Не удалось извлечь данные из ответа API');
-        try {
-          const extractedData: FoodAnalysis = JSON.parse(jsonMatch[0]);
-          return { success: true, analysis: extractedData };
-        } catch (extractError) {
-          throw new Error('Некорректный формат данных в ответе API');
-        }
-      }
+      const analysisData: FoodAnalysis = JSON.parse(content);
+      return { success: true, analysis: analysisData };
     } catch (err: any) {
       setError(err.message || 'Ошибка анализа текста');
       return { success: false, error: err.message || 'Ошибка анализа текста' };
