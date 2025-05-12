@@ -75,8 +75,11 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
   // Проверяем, запущено ли приложение в Telegram
   const isInTelegram = window.Telegram && window.Telegram.WebApp;
   
-  // Используем имитацию для Telegram или при отсутствии API ключа
-  const shouldUseMock = isInTelegram || !OPENAI_API_KEY;
+  // Определяем, нужно ли использовать мок
+  const shouldUseMock = isInTelegram; // Всегда используем мок в Telegram из-за ограничений CORS
+  
+  // Очищаем API ключ от специальных символов
+  const cleanApiKey = OPENAI_API_KEY?.replace(/%(?![0-9A-Fa-f]{2})/g, '');
 
   const analyzeFood = async (imageFile: File | Blob): Promise<ChatGPTFoodAnalysis> => {
     setIsAnalyzing(true);
@@ -85,7 +88,7 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
     try {
       // Используем режим имитации API для Telegram
       if (shouldUseMock) {
-        console.log('Используем имитацию API для анализа еды');
+        console.log('Используем имитацию API для анализа еды (Telegram WebApp)');
         const mockResult = await mockFoodAnalysis(imageFile);
         
         return {
@@ -94,11 +97,13 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
         };
       }
       
-      // Реальный API запрос (будет работать вне Telegram)
-      // Проверяем наличие API ключа
-      if (!OPENAI_API_KEY) {
-        throw new Error('API ключ OpenAI не найден. Пожалуйста, добавьте VITE_OPENAI_API_KEY в файл .env');
+      // Проверяем наличие API ключа для реального запроса
+      if (!cleanApiKey) {
+        console.error('API ключ не найден или некорректен');
+        throw new Error('API ключ OpenAI не найден или некорректен');
       }
+      
+      console.log('Отправляем запрос к OpenAI API...');
       
       // Конвертируем изображение в base64
       const base64Image = await imageToBase64(imageFile);
@@ -108,17 +113,21 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
+          'Authorization': `Bearer ${cleanApiKey}`
         },
         body: JSON.stringify({
           model: "gpt-4o",
           messages: [
             {
+              role: "system",
+              content: "Ты эксперт по питанию и анализу еды. Твоя задача - анализировать фотографии блюд и определять их питательную ценность."
+            },
+            {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Проанализируй эту фотографию еды. Определи примерное количество калорий, белков, жиров, углеводов и дай оценку качества питания от 0 до 100, где 100 - самое здоровое. Верни результат в формате JSON: {\"name\": \"Название блюда\", \"calories\": число, \"protein\": число, \"fats\": число, \"carbs\": число, \"healthScore\": число, \"commentary\": \"краткий комментарий о полезности еды\"}"
+                  text: "Проанализируй эту фотографию еды. Определи название блюда, примерное количество калорий, белков (г), жиров (г), углеводов (г) и дай оценку качества питания от 0 до 100, где 100 - самое здоровое. Верни только JSON без пояснений: {\"name\": \"Название блюда\", \"calories\": число, \"protein\": число, \"fats\": число, \"carbs\": число, \"healthScore\": число, \"commentary\": \"краткий комментарий о полезности еды\"}"
                 },
                 {
                   type: "image_url",
@@ -134,50 +143,67 @@ const useChatGPTFoodAnalysis = (): UseChatGPTFoodAnalysisReturn => {
       });
       
       if (!response.ok) {
-        throw new Error(`ChatGPT API вернул ошибку: ${response.status}`);
+        const responseData = await response.json().catch(() => ({ error: 'Ошибка парсинга ответа' }));
+        console.error('Ошибка OpenAI API:', responseData);
+        throw new Error(`Ошибка OpenAI API: ${response.status} - ${responseData.error?.message || 'Неизвестная ошибка'}`);
       }
       
       const data = await response.json();
       const content = data.choices[0].message.content;
       
-      // Извлекаем JSON из ответа
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('Не удалось извлечь данные JSON из ответа ChatGPT');
-      }
-      
-      const analysisData: FoodAnalysis = JSON.parse(jsonMatch[0]);
-      
-      return {
-        success: true,
-        analysis: analysisData
-      };
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка при анализе';
-      setError(errorMessage);
-      
-      // Если произошла ошибка и мы не в режиме имитации, пробуем использовать имитацию
-      if (!shouldUseMock) {
-        console.log('Произошла ошибка с API, используем имитацию', errorMessage);
+      try {
+        // Пытаемся распарсить JSON напрямую
+        const analysisData: FoodAnalysis = JSON.parse(content);
+        console.log('Успешно получен анализ пищи:', analysisData);
+        
+        return {
+          success: true,
+          analysis: analysisData
+        };
+      } catch (jsonError) {
+        console.error('Ошибка при парсинге JSON ответа:', jsonError);
+        
+        // Пытаемся извлечь JSON из текста
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          console.error('Не удалось извлечь данные JSON из ответа:', content);
+          throw new Error('Не удалось извлечь данные из ответа API');
+        }
+        
         try {
-          const mockResult = await mockFoodAnalysis(imageFile);
+          const extractedData: FoodAnalysis = JSON.parse(jsonMatch[0]);
+          console.log('Извлечен JSON из текстового ответа:', extractedData);
+          
           return {
             success: true,
-            analysis: mockResult
+            analysis: extractedData
           };
-        } catch (mockErr) {
-          return {
-            success: false,
-            error: 'Ошибка при анализе фото'
-          };
+        } catch (extractError) {
+          console.error('Ошибка при парсинге извлеченного JSON:', extractError);
+          throw new Error('Некорректный формат данных в ответе API');
         }
       }
       
-      return {
-        success: false,
-        error: errorMessage
-      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка при анализе';
+      console.error('Ошибка при анализе фото:', errorMessage);
+      setError(errorMessage);
+      
+      // Если произошла ошибка, пробуем использовать имитацию как запасной вариант
+      console.log('Произошла ошибка, переключаемся на режим имитации');
+      try {
+        const mockResult = await mockFoodAnalysis(imageFile);
+        return {
+          success: true,
+          analysis: mockResult
+        };
+      } catch (mockErr) {
+        console.error('Ошибка в режиме имитации:', mockErr);
+        return {
+          success: false,
+          error: 'Не удалось проанализировать фото. Пожалуйста, попробуйте еще раз.'
+        };
+      }
     } finally {
       setIsAnalyzing(false);
     }
