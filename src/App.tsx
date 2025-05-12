@@ -17,6 +17,13 @@ function App() {
     }
   }, [tg]);
 
+  // При запуске приложения - растягиваем на всю высоту
+  useEffect(() => {
+    if (tg && tg.expand) {
+      tg.expand();
+    }
+  }, [tg]);
+
   // Режим отладки - используется для тестирования вне Telegram
   const debugMode = window.location.search.includes('debug=true');
   const debugUser: TelegramUser = {
@@ -39,7 +46,9 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="title">Дневник питания</h1>
+      <header className="telegram-header">
+        <h1 className="telegram-header-title">Дневник питания</h1>
+      </header>
       
       {isLoading ? (
         <p className="loading">Загрузка...</p>
@@ -71,7 +80,7 @@ function App() {
               onClick={() => setActiveTab('food')}
               data-tab="food"
             >
-              Анализ еды
+              Добавить
             </button>
             <button 
               className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
